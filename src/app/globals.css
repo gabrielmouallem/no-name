@@ -1,8 +1,28 @@
 @import "tailwindcss";
 
+/* CRITICAL: Tailwind v4 requires custom variants for class-based theme switching */
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Light Mode - Dark buttons with lime accents */
+  --primary-50: #fafafa;
+  --primary-100: #f5f5f5;
+  --primary-200: #e5e5e5;
+  --primary-300: #d4d4d4;
+  --primary-400: #a3a3a3;
+  --primary-500: #737373;
+  --primary-600: #171717;
+  --primary-700: #0a0a0a;
+  --primary-800: #000000;
+  --primary-900: #000000;
+  
+  /* Lime accent for borders/highlights in light mode */
+  --lime-accent: #84cc16;
+  --lime-accent-hover: #65a30d;
 }
 
 @theme inline {
@@ -10,13 +30,79 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Primary Colors (adaptive based on theme) */
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+  
+  /* Lime accent colors */
+  --color-lime-accent: var(--lime-accent);
+  --color-lime-accent-hover: var(--lime-accent-hover);
 }
 
+/* System preference dark mode */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background: #1a1a1a;
+    --foreground: #e5e5e5;
+    
+    /* Dark Mode - Lime based on #e0fe58 */
+    --primary-50: #feffec;
+    --primary-100: #fbfed3;
+    --primary-200: #f6fcab;
+    --primary-300: #eff978;
+    --primary-400: #e7f548;
+    --primary-500: #e0fe58;
+    --primary-600: #c5e019;
+    --primary-700: #96aa13;
+    --primary-800: #778614;
+    --primary-900: #647117;
+    
+    --lime-accent: #e0fe58;
+    --lime-accent-hover: #c5e019;
   }
+}
+
+/* Manual dark mode */
+:root.dark {
+  --background: #1a1a1a;
+  --foreground: #e5e5e5;
+  
+  /* Dark Mode - Lime based on #e0fe58 */
+  --primary-50: #feffec;
+  --primary-100: #fbfed3;
+  --primary-200: #f6fcab;
+  --primary-300: #eff978;
+  --primary-400: #e7f548;
+  --primary-500: #e0fe58;
+  --primary-600: #c5e019;
+  --primary-700: #96aa13;
+  --primary-800: #778614;
+  --primary-900: #647117;
+  
+  --lime-accent: #e0fe58;
+  --lime-accent-hover: #c5e019;
+}
+
+/* Manual light mode */
+:root.light {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Light Mode - Dark buttons */
+  --primary-600: #171717;
+  --primary-700: #0a0a0a;
+  
+  --lime-accent: #84cc16;
+  --lime-accent-hover: #65a30d;
 }
 
 body {

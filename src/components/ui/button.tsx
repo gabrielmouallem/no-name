@@ -8,15 +8,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600",
+          "bg-primary-600 text-white hover:bg-primary-700 focus:ring-lime-accent dark:bg-primary-500 dark:text-black dark:hover:bg-primary-600 dark:focus:ring-primary-500",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-500 dark:hover:bg-red-600",
+          "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-500 dark:hover:bg-red-400",
         secondary:
-          "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600",
+          "bg-neutral-200 text-neutral-900 hover:bg-neutral-300 focus:ring-neutral-500 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800",
         outline:
-          "border border-gray-300 bg-white hover:bg-gray-50 focus:ring-gray-500 dark:border-gray-700 dark:bg-gray-950 dark:hover:bg-gray-900",
-        ghost: "hover:bg-gray-100 focus:ring-gray-500 dark:hover:bg-gray-900",
-        link: "text-blue-600 underline-offset-4 hover:underline dark:text-blue-400",
+          "border border-neutral-300 bg-white hover:bg-neutral-50 focus:ring-lime-accent dark:border-neutral-700 dark:bg-transparent dark:hover:bg-neutral-800 dark:text-neutral-100",
+        ghost:
+          "hover:bg-neutral-100 focus:ring-lime-accent dark:hover:bg-neutral-800 dark:text-neutral-100",
+        link: "text-neutral-900 underline-offset-4 hover:underline dark:text-primary-400 dark:hover:text-primary-500",
       },
       size: {
         default: "h-11 px-6 py-2",

@@ -1,6 +1,7 @@
 import { SignUpForm } from "@/components/auth/signup-form";
 import Link from "next/link";
 import { Metadata } from "next";
+import { ThemeToggle } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Sign Up",
@@ -9,32 +10,37 @@ export const metadata: Metadata = {
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950">
+    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12 dark:bg-neutral-900/50">
+      {/* Theme Toggle - Fixed position */}
+      <div className="fixed right-4 top-4">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-md space-y-8">
         {/* Logo Placeholder */}
         <div className="flex flex-col items-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-2xl font-bold text-white shadow-lg dark:from-blue-500 dark:to-blue-600">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-900 text-2xl font-bold text-white shadow-lg dark:bg-primary-500 dark:text-black">
             S
           </div>
-          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
+          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
             Create your account
           </h1>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
             Start your journey with us today
           </p>
         </div>
 
         {/* Sign Up Form */}
-        <div className="mt-8 rounded-2xl bg-white p-8 shadow-sm dark:bg-gray-900">
+        <div className="mt-8 rounded-2xl bg-white p-8 shadow-sm border border-neutral-200 dark:bg-neutral-950/50 dark:border-neutral-700">
           <SignUpForm />
         </div>
 
         {/* Login link */}
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            className="font-medium text-neutral-900 hover:text-lime-accent dark:text-primary-400 dark:hover:text-primary-300"
           >
             Sign in
           </Link>
