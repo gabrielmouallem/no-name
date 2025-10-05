@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { isProduction } from "./utils";
 import prisma from "./prisma";
 
 export const auth = betterAuth({
@@ -27,7 +28,7 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET!,
   advanced: {
-    useSecureCookies: process.env.NODE_ENV === "production",
+    useSecureCookies: isProduction(),
     cookiePrefix: "better-auth",
   },
 });

@@ -22,6 +22,14 @@ export function isServer(): boolean {
 }
 
 /**
+ * Check if running in production environment
+ * @returns true if NODE_ENV is production
+ */
+export function isProduction(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
+/**
  * Safely execute a function only on the client side and check if the result exists
  * @param getter - Function that returns the value to check
  * @returns The value if on client and it exists, undefined otherwise
@@ -146,7 +154,7 @@ type Predicate = () => boolean;
  * // Multiple conditions
  * const config = maybe(
  *   isClient,
- *   () => isDevelopment(),
+ *   () => !isProduction(),
  *   () => window.debugConfig
  * );
  * 

@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { isProduction } from "./utils";
 
 // Enhanced structured logger with Sentry integration
 export enum LogLevel {
@@ -152,7 +153,6 @@ class Logger {
 }
 
 // Create logger instance
-const logLevel =
-  process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO;
+const logLevel = !isProduction() ? LogLevel.DEBUG : LogLevel.INFO;
 export const logger = new Logger(logLevel);
   
