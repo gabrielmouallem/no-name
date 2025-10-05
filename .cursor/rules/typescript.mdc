@@ -1,0 +1,48 @@
+---
+globs: *.ts,*.tsx
+description: TypeScript coding standards and type safety guidelines
+---
+
+# TypeScript Guidelines
+
+## Type Safety
+
+- Use TypeScript for all files
+- Strict mode is enabled - maintain type safety
+- Prefer explicit types over `any`
+- Use interfaces for object shapes, types for unions/intersections
+- Leverage type inference where it improves readability
+- Use proper typing for async functions and promises
+
+## Don't Do
+
+- Don't use `any` type unless absolutely necessary
+- Don't ignore TypeScript errors
+- Don't use `var`, always use `const` or `let`
+- Don't bypass ESLint rules without good reason
+
+## Examples
+
+### Good Type Definitions
+
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+type Status = "pending" | "active" | "inactive";
+
+async function fetchUser(id: string): Promise<User> {
+  // implementation
+}
+```
+
+### Avoid
+
+```typescript
+// ❌ Don't do this
+const data: any = await fetchData();
+let x;
+```

@@ -1,0 +1,82 @@
+---
+description: Error handling patterns with Zod validation and Sentry
+---
+
+# Error Handling
+
+## Two-Tier Approach
+
+### 1. Validation Errors (Zod)
+
+Show specific field messages to users:
+
+```typescript
+const schema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+```
+
+### 2. Backend Errors
+
+Show generic messages to users:
+
+- Database errors, timeouts, 500s → "Something went wrong. Please try again."
+- NEVER expose: constraint violations, stack traces, internal details
+- ✅ Sentry captures full error details automatically
+- Users see generic messages, developers see everything in Sentry
+
+## Try-Catch Usage (CRITICAL)
+
+**Sentry automatically catches ALL errors.** Only use try-catch at user boundaries:
+
+```typescript
+// ❌ BAD: Unnecessary try-catch
+export async function getPosts() {
+  try {
+    return await db.posts.findMany();
+  } catch (error) {
+    console.error(error); // Sentry already does this!
+    throw error;
+  }
+}
+
+// ✅ GOOD: Let it bubble
+export async function getPosts() {
+  return await db.posts.findMany(); // Sentry catches automatically
+}
+
+// ✅ GOOD: Try-catch at user boundary
+export async function createPostAction(formData: FormData) {
+  try {
+    const validated = schema.parse(data);
+    const post = await db.posts.create({ data: validated });
+    return { success: true, data: post };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, fieldErrors: getFieldErrors(error) };
+    }
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+```
+
+## Error Utilities
+
+```typescript
+// lib/errors.ts
+export function getUserMessage(error: unknown): string {
+  if (error instanceof ZodError) {
+    return error.errors[0]?.message || "Please check your input.";
+  }
+  return "Something went wrong. Please try again.";
+}
+
+export function getFieldErrors(error: unknown): Record<string, string> | null {
+  if (!(error instanceof ZodError)) return null;
+  return error.errors.reduce((acc, err) => {
+    acc[err.path.join(".")] = err.message;
+    return acc;
+  }, {});
+}
+```

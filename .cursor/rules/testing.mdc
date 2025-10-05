@@ -1,0 +1,59 @@
+---
+globs: *.test.ts,*.test.tsx,*.spec.ts,*.spec.tsx
+description: Testing philosophy and patterns with MSW
+---
+
+# Testing Guidelines
+
+## Philosophy
+
+- **Behavior tests** - Test what users see/do, not implementation
+- **No unit tests** for methods/hooks - behavior tests cover these
+- **MSW** for API mocking (same mocks for tests AND offline dev)
+
+## MSW Setup
+
+```typescript
+// src/mocks/handlers.ts
+import { http, HttpResponse } from "msw";
+
+export const handlers = [
+  http.get("/api/posts", () => {
+    return HttpResponse.json({ data: mockPosts });
+  }),
+];
+
+// vitest.setup.ts
+import { server } from "./src/mocks/server";
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+## Test Example
+
+```typescript
+it("creates post and shows success message", async () => {
+  const user = userEvent.setup();
+  render(<CreatePostForm />, { wrapper });
+
+  await user.type(screen.getByLabelText(/title/i), "My Post");
+  await user.click(screen.getByRole("button", { name: /create/i }));
+
+  expect(await screen.findByText(/post created/i)).toBeInTheDocument();
+});
+```
+
+## AI Testing Guideline
+
+If tests fail after 3 attempts:
+
+- STOP writing tests
+- Leave comment: `// TODO: Tests need human review - AI struggled with [issue]`
+- Provide test outline for humans
+
+## Co-location
+
+- Place test files next to the components they test
+- Use `.test.tsx` or `.spec.tsx` extension
+- Tests move with the component during refactoring

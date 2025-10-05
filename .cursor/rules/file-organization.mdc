@@ -1,0 +1,157 @@
+---
+alwaysApply: true
+description: File organization and component structure guidelines
+---
+
+# File Organization & Component Structure
+
+## File Naming Convention: `component-name.{role}.ts` (kebab-case)
+
+Use role-based suffixes to organize component files:
+
+- `component-name.tsx` - Main component implementation
+- `component-name.types.ts` - TypeScript interfaces, types, enums
+- `component-name.constants.ts` - Magic strings, numbers, configuration
+- `component-name.utils.ts` - Component-specific utility functions
+- `hooks/use-component-name.ts` - Custom hooks (ALWAYS in /hooks folder)
+
+**IMPORTANT: Only separate files when they scale or for mockability.**
+
+- If a component has just `ComponentProps` and 2-3 constants → keep them in the main file
+- If hooks are small (<50 lines) → keep in component or move to /hooks
+- Separate when: file >200 lines, 5+ types, 10+ constants, or shared across nested components
+
+**CRITICAL: NO `component-name.hooks.ts` files - hooks ALWAYS go in `/hooks` folder**
+
+## Nested Component Hierarchy
+
+```
+components/
+├─ my-component/
+│  ├─ my-component.tsx              # Main component
+│  ├─ my-component.types.ts         # Parent types (if complex)
+│  ├─ my-component.constants.ts     # SHARED constants (used by nested)
+│  ├─ my-component.utils.ts         # SHARED utils (used by nested)
+│  ├─ index.ts                      # Clean exports
+│  ├─ hooks/
+│  │  ├─ use-my-component-logic.ts  # Hooks ALWAYS in /hooks
+│  │  └─ index.ts
+│  └─ components/
+│     ├─ nested-component/
+│     │  ├─ nested-component.tsx
+│     │  ├─ nested-component.types.ts
+│     │  ├─ nested-component.constants.ts  # Only if ONLY nested uses
+│     │  └─ index.ts
+│     └─ index.ts
+```
+
+## Hierarchy Rules (CRITICAL)
+
+### 1. Constants & Utils Placement
+
+**If used by MULTIPLE nested components** → Put in PARENT
+**If used by ONLY ONE nested component** → Put in NESTED component
+
+### 2. Hooks Placement
+
+**ALWAYS in `/hooks` folder** - never as `component-name.hooks.ts`
+
+**Parent-level hook:**
+
+```
+my-component/
+├─ hooks/
+│  └─ use-my-component-data.ts     # Used by parent or multiple nested
+```
+
+**Nested component-specific hook:**
+
+```
+my-component/
+└─ components/
+   └─ nested-component/
+      └─ hooks/
+         └─ use-nested-logic.ts    # Only nested uses
+```
+
+### 3. Types Placement
+
+Each component can have its own `.types.ts`. If types are shared across nested components → put in parent.
+
+## Decision Trees
+
+### Where to Put Constants/Utils
+
+```
+Is used by multiple nested components?
+├─ YES → Parent (my-component.constants.ts)
+└─ NO → Is used by parent AND one nested?
+    ├─ YES → Parent (my-component.constants.ts)
+    └─ NO → Nested (nested-component.constants.ts)
+```
+
+### Where to Put Hooks
+
+```
+Used by parent or multiple nested? → parent/hooks/use-hook-name.ts
+Used by only one nested? → nested/hooks/use-hook-name.ts
+
+NEVER: component-name.hooks.ts ❌
+ALWAYS: /hooks/use-hook-name.ts ✅
+```
+
+## Import Direction Rules
+
+```
+✅ ALLOWED: Child imports from parent
+✅ ALLOWED: Child imports from grandparent
+❌ FORBIDDEN: Parent imports from child
+❌ FORBIDDEN: Sibling imports from sibling
+```
+
+**Rule of thumb: Imports flow DOWN the hierarchy, never UP or SIDEWAYS**
+
+## When to Separate Files
+
+```
+Is component >200 lines?        → YES: Consider splitting
+Has 5+ types/interfaces?        → YES: Separate .types.ts
+Has 10+ constants?              → YES: Separate .constants.ts
+Has utils used by nested?       → YES: Separate parent .utils.ts
+Is hook >50 lines or shared?    → YES: Separate into /hooks
+Need to mock for testing?       → YES: Separate .utils.ts
+```
+
+## Best Practices
+
+### ✅ DO:
+
+- Separate files when they scale
+- Use kebab-case for file names
+- Use role-based suffixes (`.types.ts`, `.utils.ts`, `.constants.ts`)
+- Put shared constants/utils at parent level
+- ALWAYS put hooks in `/hooks` folder
+- Create nested `components/` folder for private subcomponents
+- Export only public API through `index.ts`
+- Imports flow DOWN the hierarchy
+
+### ❌ DON'T:
+
+- Over-engineer small components
+- Create `component-name.hooks.ts` files
+- Put shared constants in nested component (lift to parent)
+- Import from sibling components (lift shared code to parent)
+- Import from child to parent (breaks hierarchy)
+- Export internal nested components outside their parent
+- Separate files prematurely "just in case"
+
+## Quick Reference: File Placement
+
+| File Type       | Used by Parent | Used by Multiple Nested | Used by One Nested |
+| --------------- | -------------- | ----------------------- | ------------------ |
+| `.types.ts`     | Parent level   | Parent level            | Nested level       |
+| `.constants.ts` | Parent level   | Parent level ✅         | Nested level       |
+| `.utils.ts`     | Parent level   | Parent level ✅         | Nested level       |
+| `hooks/`        | Parent /hooks  | Parent /hooks ✅        | Nested /hooks      |
+
+**Golden Rule: If 2+ components use it, lift it to the nearest common parent**

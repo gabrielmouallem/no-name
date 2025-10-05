@@ -1,0 +1,70 @@
+---
+alwaysApply: true
+description: Core project standards and overview for Next.js TypeScript project
+---
+
+# Core Project Standards
+
+## Project Overview
+
+- Next.js 15.5.4 with App Router
+- React 19.1.0
+- TypeScript with strict mode enabled
+- Tailwind CSS v4
+- Turbopack enabled for development and builds
+
+## Architecture
+
+**Server Components First** - Use Server Components by default for logic, data fetching, and auth checks. Only use Client Components when interactivity is needed.
+
+### Data Flow Pattern
+
+```
+Server Component (page/layout)
+  ↓ Fetch initial data, check auth
+Client Component (interactive)
+  ↓ React Query for refetching/mutations
+Server Actions / API Routes
+  ↓ Mutations, revalidation
+```
+
+## Project Structure
+
+```
+src/
+├── app/              # Next.js App Router pages
+├── components/       # Reusable components (ui/, features/)
+├── lib/              # Utility functions and configs
+├── actions/          # Server Actions
+├── types/            # Shared TypeScript types
+├── hooks/            # Shared custom hooks
+└── mocks/            # MSW handlers for testing
+```
+
+## Naming Conventions
+
+- Components: PascalCase (`UserProfile.tsx`)
+- Files: kebab-case (`auth-helpers.ts`)
+- Hooks: camelCase with "use" prefix (`useUserData`)
+- Constants: UPPER_SNAKE_CASE
+- Variables/Functions: camelCase
+
+## Decision Checklist
+
+Before writing code:
+
+- [ ] Server Component or Client? (Default: Server)
+- [ ] Data fetching? (Server: direct fetch, Client: React Query)
+- [ ] Forms? (Simple: useActionState, Complex: React Hook Form)
+- [ ] Loading states? (Use Suspense)
+- [ ] Error handling? (Use Error Boundary)
+- [ ] Auth? (HTTP-only encrypted cookies, validate server-side)
+- [ ] File naming? (kebab-case: `my-component.tsx`, `.types.ts`, `.utils.ts`)
+- [ ] Hooks? (Always in `/hooks` folder as `use-hook-name.ts`)
+
+## Commands
+
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production with Turbopack
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint

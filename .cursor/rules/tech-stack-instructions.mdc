@@ -1,0 +1,127 @@
+---
+description: Tech stack overview and reference guide
+---
+
+# Tech Stack Overview
+
+⚠️ **IMPORTANT**: Only implement technologies listed below when the specific feature/requirement demands it. Do not integrate everything at once. Use this as a reference guide.
+
+## Core Stack
+
+### Framework & Architecture
+
+- **Next.js 15.5.4** (App Router) with TypeScript (strict mode)
+- **Server Components First** - Default for logic, data fetching, auth
+- **Client Components** - Only when interactivity needed, use React Query for data
+- **Tailwind CSS v4** - Styling
+- **Park UI** / shadcn/ui - Component library
+
+### Related Rules
+
+- See [@core-standards](mdc:.cursor/rules/core-standards.mdc) for project structure
+- See [@typescript](mdc:.cursor/rules/typescript.mdc) for type safety
+- See [@react-nextjs](mdc:.cursor/rules/react-nextjs.mdc) for component patterns
+- See [@tailwind-styling](mdc:.cursor/rules/tailwind-styling.mdc) for styling
+
+## Key Technologies
+
+### Authentication
+
+- **Better-auth** (open source) or **Clerk** (managed)
+- HTTP-only encrypted cookies (AES-256-GCM)
+- Server-side session validation required
+
+See [@authentication](mdc:.cursor/rules/authentication.mdc) for implementation details.
+
+### Data & State
+
+- **Supabase** (PostgreSQL) - Server Components
+- **React Query** - Client Components data fetching
+- **Context API** - Only for theme/i18n, NEVER for state management
+
+See [@data-fetching](mdc:.cursor/rules/data-fetching.mdc) for patterns.
+
+### Error Handling
+
+- **Zod** - Validation with specific error messages
+- **Sentry** - Automatic error tracking (backend errors = generic messages to users)
+- Try-catch only at user boundaries
+
+See [@error-handling](mdc:.cursor/rules/error-handling.mdc) for approach.
+
+### Payments
+
+- **Stripe** (official libraries only)
+- **Inngest** - Required for webhook processing
+
+See [@integrations](mdc:.cursor/rules/integrations.mdc) for setup.
+
+### Infrastructure
+
+- **Infisical** - Secrets management
+- **Vercel KV** - Rate limiting (Redis)
+- **Resend** - Transactional emails
+- **Minio** - File storage (S3-compatible)
+- **Inngest** - Background jobs, cron
+
+### Monitoring
+
+- **Sentry** - Error tracking
+- **PostHog** - Analytics, session replay, feature flags
+- **Axiom** - Structured logging
+
+See [@integrations](mdc:.cursor/rules/integrations.mdc) for details.
+
+### Testing
+
+- **MSW** - API mocking
+- **Vitest** - Test runner
+- Behavior tests only (no unit tests for hooks/methods)
+
+See [@testing](mdc:.cursor/rules/testing.mdc) for philosophy.
+
+## Component Organization
+
+- Use kebab-case for file names (`my-component.tsx`)
+- Hooks ALWAYS in `/hooks` folder as `use-hook-name.ts`
+- Separate files when they scale (>200 lines, 5+ types, 10+ constants)
+- Shared code at parent level, local code in nested components
+
+See [@file-organization](mdc:.cursor/rules/file-organization.mdc) for detailed guidelines.
+
+## Critical Rules
+
+### ❌ NEVER DO
+
+- Store auth tokens in localStorage/sessionStorage
+- Store unencrypted session data in cookies
+- Use Context API for data fetching or auth
+- Use side effects (useEffect) for state management
+- Create `component-name.hooks.ts` files (use `/hooks` folder)
+- Import from sibling components (lift shared code to parent)
+- Use PascalCase for file names (use kebab-case)
+
+### ✅ ALWAYS DO
+
+- Use HTTP-only encrypted cookies for auth (AES-256-GCM)
+- Validate sessions server-side in protected routes
+- Show specific messages for validation errors
+- Show generic messages for backend errors
+- Use React Query in Client Components
+- Process Stripe webhooks through Inngest
+- Use kebab-case for file names
+- Put hooks in `/hooks` folder as `use-hook-name.ts`
+- Lift shared constants/utils to parent level
+
+## When to Use What
+
+**Server Components**: Pages, layouts, data fetching, auth checks  
+**Client Components**: Interactivity, forms, real-time updates  
+**React Query**: All data fetching in Client Components  
+**Context API**: Theme/i18n only - NEVER for state management  
+**useActionState**: Progressive forms without JavaScript  
+**React Hook Form**: Complex client-side forms  
+**Suspense**: Loading states for async components  
+**Error Boundary**: Catch React component errors  
+**Sentry**: Automatic error tracking  
+**Inngest**: Background jobs, Stripe webhooks, cron jobs

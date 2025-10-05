@@ -1,0 +1,130 @@
+---
+globs: *.tsx,*.jsx
+description: React and Next.js component development standards
+---
+
+# React & Next.js Guidelines
+
+## Component Architecture
+
+- Use functional components with hooks
+- Prefer server components by default (Next.js 15 App Router)
+- Add "use client" directive only when necessary:
+  - Client interactivity (onClick, onChange, etc.)
+  - Browser APIs (localStorage, window, document)
+  - React hooks (useState, useEffect, useContext, etc.)
+
+## Next.js Features
+
+- Use `next/image` for image optimization
+- Use `next/link` for navigation
+- Leverage Metadata API for SEO
+- Follow App Router conventions:
+  - `page.tsx` - Route pages
+  - `layout.tsx` - Layouts
+  - `loading.tsx` - Loading states
+  - `error.tsx` - Error boundaries
+  - `not-found.tsx` - 404 pages
+
+## Modern React Patterns
+
+### 1. Suspense (Loading States)
+
+```typescript
+export default function Page() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <AsyncPostsList />
+    </Suspense>
+  );
+}
+```
+
+### 2. Error Boundaries
+
+```typescript
+// app/error.tsx
+"use client";
+export default function Error({ error, reset }) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={reset}>Try again</button>
+    </div>
+  );
+}
+```
+
+### 3. useActionState (Progressive Forms)
+
+```typescript
+"use client";
+import { useActionState } from "react";
+
+export function CreatePostForm() {
+  const [state, formAction, isPending] = useActionState(createPostAction, {
+    success: false,
+    error: null,
+    fieldErrors: null,
+  });
+
+  return (
+    <form action={formAction}>
+      <input name="title" />
+      {state.fieldErrors?.title && <span>{state.fieldErrors.title}</span>}
+      <button disabled={isPending}>
+        {isPending ? "Creating..." : "Create"}
+      </button>
+    </form>
+  );
+}
+```
+
+### 4. useFormStatus (Submission State)
+
+```typescript
+"use client";
+import { useFormStatus } from "react-dom";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return <button disabled={pending}>{pending ? "Saving..." : "Save"}</button>;
+}
+```
+
+### 5. React Hook Form + Zod (Complex Forms)
+
+```typescript
+"use client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+export function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+  });
+
+  const onSubmit = handleSubmit(async (data) => {
+    await signupMutation.mutate(data);
+  });
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input {...register("email")} />
+      {errors.email && <span>{errors.email.message}</span>}
+      <button type="submit">Sign Up</button>
+    </form>
+  );
+}
+```
+
+## Performance
+
+- Optimize images using Next.js Image component
+- Use dynamic imports for heavy components
+- Avoid unnecessary client components
+- Use React.memo() sparingly

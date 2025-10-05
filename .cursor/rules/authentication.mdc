@@ -1,0 +1,98 @@
+---
+description: Authentication security patterns and session management
+---
+
+# Authentication & Security
+
+## Authentication Options
+
+Choose ONE:
+
+### Better-auth (Open Source, Full Control)
+
+```typescript
+export const auth = betterAuth({
+  session: {
+    cookieOptions: {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+    },
+  },
+  secret: process.env.BETTER_AUTH_SECRET!,
+});
+```
+
+### Clerk (Managed Service)
+
+- Pre-built components with automatic security
+- HTTP-only encrypted cookies by default
+
+## Security Rules (CRITICAL)
+
+### Cookie Security
+
+- ✅ Sessions/tokens MUST be in HTTP-only encrypted cookies
+- ✅ Use AES-256-GCM or similar encryption
+- ✅ Use 32+ character cryptographically secure secrets
+- ✅ Set `httpOnly: true` (prevents XSS)
+- ✅ Set `secure: true` in production (HTTPS only)
+- ✅ Set `sameSite: 'lax'` or `'strict'` (CSRF protection)
+- ❌ NEVER use localStorage or sessionStorage for auth tokens
+- ❌ NEVER store unencrypted session data in cookies
+
+### Server-Side Validation
+
+```typescript
+// ✅ GOOD: Server-side validation
+export default async function ProtectedPage() {
+  const session = await auth.getSession();
+  if (!session) redirect("/login");
+  return <Dashboard user={session.user} />;
+}
+
+// ❌ BAD: Client-only validation
+const { session } = useAuth(); // Don't rely on this alone!
+```
+
+### Session Encryption Example
+
+```typescript
+import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+
+export function encryptSession(data: SessionData): string {
+  const algorithm = "aes-256-gcm";
+  const key = Buffer.from(process.env.SESSION_ENCRYPTION_KEY!, "hex");
+  const iv = randomBytes(16);
+  const cipher = createCipheriv(algorithm, key, iv);
+
+  let encrypted = cipher.update(JSON.stringify(data), "utf8", "hex");
+  encrypted += cipher.final("hex");
+  const authTag = cipher.getAuthTag();
+
+  return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
+}
+
+export function decryptSession(encrypted: string): SessionData {
+  const [ivHex, authTagHex, encryptedData] = encrypted.split(":");
+  const algorithm = "aes-256-gcm";
+  const key = Buffer.from(process.env.SESSION_ENCRYPTION_KEY!, "hex");
+  const iv = Buffer.from(ivHex, "hex");
+  const authTag = Buffer.from(authTagHex, "hex");
+
+  const decipher = createDecipheriv(algorithm, key, iv);
+  decipher.setAuthTag(authTag);
+
+  let decrypted = decipher.update(encryptedData, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+
+  return JSON.parse(decrypted);
+}
+```
+
+## Best Practices
+
+- Always validate sessions server-side in protected routes
+- Rotate sessions on password changes and privilege escalations
+- Set appropriate cookie expiration (maxAge)

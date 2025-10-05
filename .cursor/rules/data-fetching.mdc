@@ -1,0 +1,104 @@
+---
+description: Data fetching patterns with Supabase and React Query
+---
+
+# Data Fetching & State Management
+
+## Supabase (PostgreSQL)
+
+- Use in Server Components for initial data fetch
+- Implement Row Level Security (RLS) for authorization
+
+## React Query (Client Components)
+
+```typescript
+"use client";
+import { useQuery, useMutation } from "@tanstack/react-query";
+
+export function PostsList({ initialPosts }) {
+  const { data: posts } = useQuery({
+    queryKey: ["posts"],
+    queryFn: async () => {
+      const res = await fetch("/api/posts");
+      return res.json();
+    },
+    initialData: initialPosts, // From Server Component
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await fetch(`/api/posts/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+
+  return <ul>{/* ... */}</ul>;
+}
+```
+
+## Context API & Side Effects (CRITICAL)
+
+**Avoid side effects as much as possible.** Side effects should ONLY be used for:
+
+- Pub/sub patterns (event emitters, observers)
+- Events (analytics, logging)
+- WebSockets (real-time connections)
+- Theme/dark mode toggle
+- Locale/i18n
+
+**NEVER use side effects (useEffect, Context) for state updates** - this is a symptom of bad component architecture.
+
+```typescript
+// ❌ BAD: Using Context for data that changes
+function UserProvider({ children }) {
+  const [user, setUser] = useState();
+  useEffect(() => {
+    fetchUser().then(setUser);
+  }, []); // Wrong!
+  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+}
+
+// ✅ GOOD: React Query for data
+function PostsList() {
+  const { data } = useQuery({ queryKey: ["user"], queryFn: fetchUser });
+  return <div>{data.name}</div>;
+}
+
+// ✅ GOOD: Context only for theme
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState("light");
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// ✅ GOOD: useEffect for WebSocket
+function Chat() {
+  const { data } = useQuery({ queryKey: ["messages"], queryFn: fetchMessages });
+
+  useEffect(() => {
+    const ws = new WebSocket("wss://...");
+    ws.onmessage = () => {
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
+    };
+    return () => ws.close();
+  }, []);
+
+  return <MessageList messages={data} />;
+}
+```
+
+## Context API Guidelines
+
+- ✅ Theme/dark mode
+- ✅ Locale/i18n
+- ✅ WebSocket connections (connection only, not state)
+- ✅ Event emitters (analytics, logging)
+- ❌ Auth state → Use Server Components + cookies
+- ❌ Data fetching → Use React Query
+- ❌ Form state → Use React Hook Form
+- ❌ Parent-child state sync → Restructure component tree
