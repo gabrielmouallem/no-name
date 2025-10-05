@@ -59,6 +59,7 @@ Before writing code:
 - [ ] Loading states? (Use Suspense)
 - [ ] Error handling? (Use Error Boundary)
 - [ ] Auth? (HTTP-only encrypted cookies, validate server-side)
+- [ ] Logging? (Use `logger` from `@/lib/logger`, never `console.*`)
 - [ ] File naming? (kebab-case: `my-component.tsx`, `.types.ts`, `.utils.ts`)
 - [ ] Hooks? (Always in `/hooks` folder as `use-hook-name.ts`)
 

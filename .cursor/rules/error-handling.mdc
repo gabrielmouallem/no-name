@@ -1,10 +1,57 @@
 ---
-description: Error handling patterns with Zod validation and Sentry
+description: Error handling patterns with Zod validation and logging
 ---
 
-# Error Handling
+# Error Handling & Logging
 
-## Two-Tier Approach
+## Logging Standards (CRITICAL)
+
+**ALWAYS use `logger` from `@/lib/logger` for all logging needs.**
+
+```typescript
+import { logger } from "@/lib/logger";
+
+// ✅ GOOD: Use structured logger
+logger.info("User authenticated", { userId: user.id, email: user.email });
+logger.error("Database connection failed", { database: "main" }, error);
+logger.warn("Rate limit approaching", { userId, requestCount });
+logger.debug("Cache hit", { key: cacheKey, ttl: 300 });
+
+// ❌ BAD: Never use console directly
+console.log("User authenticated"); // Don't do this!
+console.error(error); // Don't do this!
+```
+
+### Logger Levels
+
+- **ERROR** - System errors, exceptions, failures
+- **WARN** - Warnings, deprecations, rate limits approaching
+- **INFO** - Important business events (login, signup, purchases)
+- **DEBUG** - Detailed information for debugging (only in development)
+
+### When to Log
+
+```typescript
+// ✅ DO log:
+logger.info("User signed in", { userId, method: "email" });
+logger.error("Payment processing failed", { orderId, amount }, error);
+logger.warn("Email sending delayed", { recipientId, attempts: 3 });
+
+// ❌ DON'T log:
+logger.debug("Variable x =", x); // Use debugger instead
+logger.info("Function called"); // Too verbose
+logger.error("Error", {}, error); // Add context!
+```
+
+### Best Practices
+
+- Always include context (userId, orderId, etc.)
+- Never log sensitive data (passwords, tokens, credit cards)
+- Log at appropriate levels (info for business events, debug for development)
+- Include error objects when logging errors
+- Use structured context objects, not string concatenation
+
+## Two-Tier Error Approach
 
 ### 1. Validation Errors (Zod)
 
@@ -23,12 +70,12 @@ Show generic messages to users:
 
 - Database errors, timeouts, 500s → "Something went wrong. Please try again."
 - NEVER expose: constraint violations, stack traces, internal details
-- ✅ Sentry captures full error details automatically
-- Users see generic messages, developers see everything in Sentry
+- ✅ Logger captures full error details with context
+- Users see generic messages, developers see everything in logs/monitoring
 
 ## Try-Catch Usage (CRITICAL)
 
-**Sentry automatically catches ALL errors.** Only use try-catch at user boundaries:
+**Log errors at boundaries, let monitoring tools catch them.** Only use try-catch at user boundaries:
 
 ```typescript
 // ❌ BAD: Unnecessary try-catch
@@ -36,26 +83,28 @@ export async function getPosts() {
   try {
     return await db.posts.findMany();
   } catch (error) {
-    console.error(error); // Sentry already does this!
+    console.error(error); // Don't use console!
     throw error;
   }
 }
 
 // ✅ GOOD: Let it bubble
 export async function getPosts() {
-  return await db.posts.findMany(); // Sentry catches automatically
+  return await db.posts.findMany(); // Monitoring tools catch automatically
 }
 
-// ✅ GOOD: Try-catch at user boundary
+// ✅ GOOD: Try-catch at user boundary with logging
 export async function createPostAction(formData: FormData) {
   try {
     const validated = schema.parse(data);
     const post = await db.posts.create({ data: validated });
+    logger.info("Post created", { postId: post.id, userId: post.authorId });
     return { success: true, data: post };
   } catch (error) {
     if (error instanceof ZodError) {
       return { success: false, fieldErrors: getFieldErrors(error) };
     }
+    logger.error("Failed to create post", { userId: session.userId }, error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

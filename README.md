@@ -49,13 +49,21 @@ openssl rand -base64 32
 
 ### Development
 
-Run the development server:
+1. Initialize the database (first time only):
+
+```bash
+npm run db:init
+```
+
+2. Run the development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+The app will automatically redirect you to the login page. Create an account using the sign-up page!
 
 ### Build for Production
 

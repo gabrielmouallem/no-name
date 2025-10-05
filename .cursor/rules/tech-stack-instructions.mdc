@@ -100,6 +100,7 @@ See [@file-organization](mdc:.cursor/rules/file-organization.mdc) for detailed g
 - Create `component-name.hooks.ts` files (use `/hooks` folder)
 - Import from sibling components (lift shared code to parent)
 - Use PascalCase for file names (use kebab-case)
+- Use console.log/error/warn directly (use `logger` from `@/lib/logger`)
 
 ### ✅ ALWAYS DO
 
@@ -112,6 +113,7 @@ See [@file-organization](mdc:.cursor/rules/file-organization.mdc) for detailed g
 - Use kebab-case for file names
 - Put hooks in `/hooks` folder as `use-hook-name.ts`
 - Lift shared constants/utils to parent level
+- Use `logger` from `@/lib/logger` for all logging (never console.\*)
 
 ## When to Use What
 
@@ -123,5 +125,6 @@ See [@file-organization](mdc:.cursor/rules/file-organization.mdc) for detailed g
 **React Hook Form**: Complex client-side forms  
 **Suspense**: Loading states for async components  
 **Error Boundary**: Catch React component errors  
-**Sentry**: Automatic error tracking  
+**Logger** (`@/lib/logger`): All logging with structured context  
+**Sentry**: Automatic error tracking (when integrated)  
 **Inngest**: Background jobs, Stripe webhooks, cron jobs
