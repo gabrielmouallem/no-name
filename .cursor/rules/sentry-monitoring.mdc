@@ -1,0 +1,366 @@
+---
+title: Sentry Monitoring
+description: Sentry error tracking, performance monitoring, and logging patterns
+---
+
+# Sentry Monitoring
+
+These examples should be used as guidance when configuring Sentry functionality within a project.
+
+## Configuration
+
+In Next.js, Sentry initialization happens in three places:
+
+- **Client-side**: `sentry.client.config.ts` (browser)
+- **Server-side**: `sentry.server.config.ts` (Node.js)
+- **Edge**: `sentry.edge.config.ts` (Edge Runtime)
+
+Initialization only needs to happen in these files. Use `import * as Sentry from "@sentry/nextjs"` to reference Sentry functionality elsewhere.
+
+### Baseline Configuration
+
+```typescript
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+
+  // Enable experimental logging support
+  _experiments: {
+    enableLogs: true,
+  },
+
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  debug: true,
+  environment: process.env.NODE_ENV,
+});
+```
+
+### With Console Logging Integration
+
+Automatically send console.log, console.warn, and console.error calls as logs to Sentry:
+
+```typescript
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+
+  _experiments: {
+    enableLogs: true,
+  },
+
+  integrations: [
+    Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
+  ],
+});
+```
+
+## Exception Catching
+
+Use `Sentry.captureException(error)` to capture exceptions and log errors in Sentry.
+
+Use this in try-catch blocks or areas where exceptions are expected:
+
+```typescript
+try {
+  await riskyOperation();
+} catch (error) {
+  Sentry.captureException(error);
+  throw error; // Re-throw if needed
+}
+```
+
+## Performance Tracing
+
+Spans should be created for meaningful actions like button clicks, API calls, and function calls.
+
+Use `Sentry.startSpan` to create a span. Child spans can exist within a parent span.
+
+### Custom Span Instrumentation in Component Actions
+
+The `name` and `op` properties should be meaningful for the activities in the call.
+
+Attach attributes based on relevant information and metrics:
+
+```typescript
+"use client";
+
+import * as Sentry from "@sentry/nextjs";
+
+function TestComponent() {
+  const handleTestButtonClick = () => {
+    // Create a span to measure performance
+    Sentry.startSpan(
+      {
+        op: "ui.click",
+        name: "Test Button Click",
+      },
+      (span) => {
+        const value = "some config";
+        const metric = "some metric";
+
+        // Metrics can be added to the span
+        span.setAttribute("config", value);
+        span.setAttribute("metric", metric);
+
+        doSomething();
+      }
+    );
+  };
+
+  return (
+    <button type="button" onClick={handleTestButtonClick}>
+      Test Sentry
+    </button>
+  );
+}
+```
+
+### Custom Span Instrumentation in API Calls
+
+The `name` and `op` properties should be meaningful for the activities in the call.
+
+Attach attributes based on relevant information and metrics from the request:
+
+```typescript
+import * as Sentry from "@sentry/nextjs";
+
+async function fetchUserData(userId: string) {
+  return Sentry.startSpan(
+    {
+      op: "http.client",
+      name: `GET /api/users/${userId}`,
+    },
+    async () => {
+      const response = await fetch(`/api/users/${userId}`);
+      const data = await response.json();
+      return data;
+    }
+  );
+}
+```
+
+### Server Actions with Tracing
+
+```typescript
+"use server";
+
+import * as Sentry from "@sentry/nextjs";
+
+export async function updateUserProfile(userId: string, data: ProfileData) {
+  return Sentry.startSpan(
+    {
+      op: "server.action",
+      name: "Update User Profile",
+    },
+    async (span) => {
+      span.setAttribute("user_id", userId);
+
+      try {
+        const result = await db.user.update({
+          where: { id: userId },
+          data,
+        });
+
+        span.setAttribute("success", true);
+        return result;
+      } catch (error) {
+        span.setAttribute("success", false);
+        Sentry.captureException(error);
+        throw error;
+      }
+    }
+  );
+}
+```
+
+## Structured Logging
+
+Sentry provides a structured logger that integrates with its error tracking and performance monitoring.
+
+### Logger API
+
+Use `logger.fmt` as a template literal function to bring variables into structured logs:
+
+```typescript
+import * as Sentry from "@sentry/nextjs";
+
+const { logger } = Sentry;
+
+// Trace level - detailed diagnostic information
+logger.trace("Starting database connection", { database: "users" });
+
+// Debug level - detailed information for debugging
+logger.debug(logger.fmt`Cache miss for user: ${userId}`);
+
+// Info level - general informational messages
+logger.info("Updated profile", { profileId: 345 });
+
+// Warning level - warning messages for potentially harmful situations
+logger.warn("Rate limit reached for endpoint", {
+  endpoint: "/api/results/",
+  isEnterprise: false,
+});
+
+// Error level - error messages for serious problems
+logger.error("Failed to process payment", {
+  orderId: "order_123",
+  amount: 99.99,
+});
+
+// Fatal level - very severe error events that might cause the application to abort
+logger.fatal("Database connection pool exhausted", {
+  database: "users",
+  activeConnections: 100,
+});
+```
+
+### Log Levels
+
+- `trace` - Most detailed diagnostic information
+- `debug` - Detailed information for debugging
+- `info` - General informational messages
+- `warn` - Potentially harmful situations
+- `error` - Error events that might still allow the application to continue
+- `fatal` - Very severe errors that might cause the application to abort
+
+### Best Practices
+
+1. **Use structured context**: Always pass context objects rather than string interpolation
+2. **Use logger.fmt for variables**: When you need to include variables in the message
+3. **Add relevant metadata**: Include IDs, timestamps, and other relevant data in context
+4. **Choose appropriate levels**: Use the right log level for the situation
+5. **Don't log sensitive data**: Avoid logging passwords, tokens, or PII
+
+## Common Patterns
+
+### API Route with Full Instrumentation
+
+```typescript
+import * as Sentry from "@sentry/nextjs";
+import { NextRequest, NextResponse } from "next/server";
+
+const { logger } = Sentry;
+
+export async function GET(req: NextRequest) {
+  return Sentry.startSpan(
+    {
+      op: "http.server",
+      name: "GET /api/user",
+    },
+    async (span) => {
+      try {
+        const userId = req.nextUrl.searchParams.get("id");
+
+        logger.info("Fetching user data", { userId });
+        span.setAttribute("user_id", userId);
+
+        const user = await fetchUser(userId);
+
+        logger.info("User data fetched successfully", { userId });
+
+        return NextResponse.json(user);
+      } catch (error) {
+        logger.error("Failed to fetch user", { error });
+        Sentry.captureException(error);
+
+        return NextResponse.json(
+          { error: "Failed to fetch user" },
+          { status: 500 }
+        );
+      }
+    }
+  );
+}
+```
+
+### Server Component with Error Boundary
+
+```typescript
+import * as Sentry from "@sentry/nextjs";
+
+const { logger } = Sentry;
+
+export default async function UserProfile({ userId }: { userId: string }) {
+  try {
+    logger.info("Rendering user profile", { userId });
+
+    const user = await fetchUser(userId);
+
+    return <div>{user.name}</div>;
+  } catch (error) {
+    logger.error("Failed to render user profile", { userId, error });
+    Sentry.captureException(error);
+    throw error; // Let error boundary handle it
+  }
+}
+```
+
+### Client Component with User Interaction Tracking
+
+```typescript
+"use client";
+
+import * as Sentry from "@sentry/nextjs";
+import { useState } from "react";
+
+const { logger } = Sentry;
+
+export function FormComponent() {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (data: FormData) => {
+    return Sentry.startSpan(
+      {
+        op: "ui.action",
+        name: "Form Submit",
+      },
+      async (span) => {
+        setLoading(true);
+
+        try {
+          logger.info("Form submission started");
+          span.setAttribute("form_type", "user_profile");
+
+          const response = await fetch("/api/submit", {
+            method: "POST",
+            body: data,
+          });
+
+          if (!response.ok) {
+            throw new Error("Submission failed");
+          }
+
+          logger.info("Form submitted successfully");
+          span.setAttribute("success", true);
+        } catch (error) {
+          logger.error("Form submission failed", { error });
+          Sentry.captureException(error);
+          span.setAttribute("success", false);
+        } finally {
+          setLoading(false);
+        }
+      }
+    );
+  };
+
+  return <form onSubmit={handleSubmit}>{/* form fields */}</form>;
+}
+```
+
+## Testing Sentry Setup
+
+To verify your Sentry setup is working:
+
+1. Visit `/sentry-example-page` (if configured)
+2. Or trigger a test error:
+
+```typescript
+// In any component or API route
+import * as Sentry from "@sentry/nextjs";
+
+function triggerTestError() {
+  Sentry.captureException(new Error("Test error for Sentry"));
+}
+```
+
+Check your Sentry dashboard to see if the error appears.
