@@ -14,7 +14,7 @@ export function ThemeToggle() {
   ];
 
   return (
-    <div className="inline-flex items-center rounded-lg bg-neutral-200 p-1 dark:bg-neutral-800/50 dark:border dark:border-neutral-700">
+    <div className="inline-flex items-center rounded-lg bg-neutral-200 p-1 border border-neutral-300/50 dark:bg-neutral-800/50 dark:border dark:border-neutral-700">
       {themes.map(({ value, icon: Icon, label }) => (
         <button
           key={value}

@@ -1,7 +1,6 @@
 import { LoginForm } from "@/components/auth/login-form";
 import Link from "next/link";
 import { Metadata } from "next";
-import { ThemeToggle } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -11,11 +10,6 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12 dark:bg-neutral-900/50">
-      {/* Theme Toggle - Fixed position */}
-      <div className="fixed right-4 top-4">
-        <ThemeToggle />
-      </div>
-
       <div className="w-full max-w-md space-y-8">
         {/* Logo Placeholder */}
         <div className="flex flex-col items-center">
@@ -40,7 +34,7 @@ export default function LoginPage() {
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-medium text-neutral-900 hover:text-lime-accent dark:text-primary-400 dark:hover:text-primary-300"
+            className="font-medium text-indigo-600 dark:text-primary-400"
           >
             Sign up
           </Link>

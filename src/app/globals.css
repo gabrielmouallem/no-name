@@ -21,8 +21,8 @@
   --primary-900: #000000;
   
   /* Lime accent for borders/highlights in light mode */
-  --lime-accent: #84cc16;
-  --lime-accent-hover: #65a30d;
+  --lime-accent: #e0fe58;
+  --lime-accent-hover: #c5e019;
 }
 
 @theme inline {

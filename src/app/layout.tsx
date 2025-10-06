@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { SentryClientInit } from "@/components/sentry-client-init";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
@@ -29,33 +31,34 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme') || 'system';
-                  const root = document.documentElement;
-                  
-                  if (theme === 'dark') {
-                    root.classList.add('dark');
-                  } else if (theme === 'light') {
-                    root.classList.add('light');
-                  } else {
-                    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                    root.classList.add(systemTheme);
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                const theme = localStorage.getItem('theme') || 'system';
+                const root = document.documentElement;
+                
+                if (theme === 'dark') {
+                  root.classList.add('dark');
+                } else if (theme === 'light') {
+                  root.classList.add('light');
+                } else {
+                  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  root.classList.add(systemTheme);
+                }
+              } catch (e) {}
+            })();
+          `}
+        </Script>
       </head>
       <body
         className={cn(geistSans.variable, geistMono.variable, "antialiased")}
       >
         <ThemeProvider>
           <SentryClientInit />
+          <div className="fixed right-4 top-4 z-50">
+            <ThemeToggle />
+          </div>
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>
